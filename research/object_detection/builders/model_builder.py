@@ -36,149 +36,98 @@ from object_detection.protos import losses_pb2
 from object_detection.protos import model_pb2
 from object_detection.utils import label_map_util
 from object_detection.utils import ops
-from object_detection.utils import tf_version
 
 ## Feature Extractors for TF
 ## This section conditionally imports different feature extractors based on the
 ## Tensorflow version.
 ##
 # pylint: disable=g-import-not-at-top
-if tf_version.is_tf2():
-  from object_detection.models import center_net_hourglass_feature_extractor
-  from object_detection.models import center_net_resnet_feature_extractor
-  from object_detection.models import faster_rcnn_inception_resnet_v2_keras_feature_extractor as frcnn_inc_res_keras
-  from object_detection.models import faster_rcnn_resnet_keras_feature_extractor as frcnn_resnet_keras
-  from object_detection.models import ssd_resnet_v1_fpn_keras_feature_extractor as ssd_resnet_v1_fpn_keras
-  from object_detection.models.ssd_mobilenet_v1_fpn_keras_feature_extractor import SSDMobileNetV1FpnKerasFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v1_keras_feature_extractor import SSDMobileNetV1KerasFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v2_fpn_keras_feature_extractor import SSDMobileNetV2FpnKerasFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v2_keras_feature_extractor import SSDMobileNetV2KerasFeatureExtractor
-  from object_detection.predictors import rfcn_keras_box_predictor
 
-if tf_version.is_tf1():
-  from object_detection.models import faster_rcnn_inception_resnet_v2_feature_extractor as frcnn_inc_res
-  from object_detection.models import faster_rcnn_inception_v2_feature_extractor as frcnn_inc_v2
-  from object_detection.models import faster_rcnn_nas_feature_extractor as frcnn_nas
-  from object_detection.models import faster_rcnn_pnas_feature_extractor as frcnn_pnas
-  from object_detection.models import faster_rcnn_resnet_v1_feature_extractor as frcnn_resnet_v1
-  from object_detection.models import ssd_resnet_v1_fpn_feature_extractor as ssd_resnet_v1_fpn
-  from object_detection.models import ssd_resnet_v1_ppn_feature_extractor as ssd_resnet_v1_ppn
-  from object_detection.models.embedded_ssd_mobilenet_v1_feature_extractor import EmbeddedSSDMobileNetV1FeatureExtractor
-  from object_detection.models.ssd_inception_v2_feature_extractor import SSDInceptionV2FeatureExtractor
-  from object_detection.models.ssd_mobilenet_v2_fpn_feature_extractor import SSDMobileNetV2FpnFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v2_mnasfpn_feature_extractor import SSDMobileNetV2MnasFPNFeatureExtractor
-  from object_detection.models.ssd_inception_v3_feature_extractor import SSDInceptionV3FeatureExtractor
-  from object_detection.models.ssd_mobilenet_edgetpu_feature_extractor import SSDMobileNetEdgeTPUFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v1_feature_extractor import SSDMobileNetV1FeatureExtractor
-  from object_detection.models.ssd_mobilenet_v1_fpn_feature_extractor import SSDMobileNetV1FpnFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v1_ppn_feature_extractor import SSDMobileNetV1PpnFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v2_feature_extractor import SSDMobileNetV2FeatureExtractor
-  from object_detection.models.ssd_mobilenet_v3_feature_extractor import SSDMobileNetV3LargeFeatureExtractor
-  from object_detection.models.ssd_mobilenet_v3_feature_extractor import SSDMobileNetV3SmallFeatureExtractor
-  from object_detection.models.ssd_pnasnet_feature_extractor import SSDPNASNetFeatureExtractor
-  from object_detection.predictors import rfcn_box_predictor
+from object_detection.models import faster_rcnn_inception_resnet_v2_feature_extractor as frcnn_inc_res
+from object_detection.models import faster_rcnn_inception_v2_feature_extractor as frcnn_inc_v2
+from object_detection.models import faster_rcnn_nas_feature_extractor as frcnn_nas
+from object_detection.models import faster_rcnn_pnas_feature_extractor as frcnn_pnas
+from object_detection.models import faster_rcnn_resnet_v1_feature_extractor as frcnn_resnet_v1
+from object_detection.models import ssd_resnet_v1_fpn_feature_extractor as ssd_resnet_v1_fpn
+from object_detection.models import ssd_resnet_v1_ppn_feature_extractor as ssd_resnet_v1_ppn
+from object_detection.models.embedded_ssd_mobilenet_v1_feature_extractor import EmbeddedSSDMobileNetV1FeatureExtractor
+from object_detection.models.ssd_inception_v2_feature_extractor import SSDInceptionV2FeatureExtractor
+from object_detection.models.ssd_mobilenet_v2_fpn_feature_extractor import SSDMobileNetV2FpnFeatureExtractor
+from object_detection.models.ssd_mobilenet_v2_mnasfpn_feature_extractor import SSDMobileNetV2MnasFPNFeatureExtractor
+from object_detection.models.ssd_inception_v3_feature_extractor import SSDInceptionV3FeatureExtractor
+from object_detection.models.ssd_mobilenet_edgetpu_feature_extractor import SSDMobileNetEdgeTPUFeatureExtractor
+from object_detection.models.ssd_mobilenet_v1_feature_extractor import SSDMobileNetV1FeatureExtractor
+from object_detection.models.ssd_mobilenet_v1_fpn_feature_extractor import SSDMobileNetV1FpnFeatureExtractor
+from object_detection.models.ssd_mobilenet_v1_ppn_feature_extractor import SSDMobileNetV1PpnFeatureExtractor
+from object_detection.models.ssd_mobilenet_v2_feature_extractor import SSDMobileNetV2FeatureExtractor
+from object_detection.models.ssd_mobilenet_v3_feature_extractor import SSDMobileNetV3LargeFeatureExtractor
+from object_detection.models.ssd_mobilenet_v3_feature_extractor import SSDMobileNetV3SmallFeatureExtractor
+from object_detection.models.ssd_pnasnet_feature_extractor import SSDPNASNetFeatureExtractor
+from object_detection.predictors import rfcn_box_predictor
 # pylint: enable=g-import-not-at-top
 
-if tf_version.is_tf2():
-  SSD_KERAS_FEATURE_EXTRACTOR_CLASS_MAP = {
-      'ssd_mobilenet_v1_keras': SSDMobileNetV1KerasFeatureExtractor,
-      'ssd_mobilenet_v1_fpn_keras': SSDMobileNetV1FpnKerasFeatureExtractor,
-      'ssd_mobilenet_v2_keras': SSDMobileNetV2KerasFeatureExtractor,
-      'ssd_mobilenet_v2_fpn_keras': SSDMobileNetV2FpnKerasFeatureExtractor,
-      'ssd_resnet50_v1_fpn_keras':
-          ssd_resnet_v1_fpn_keras.SSDResNet50V1FpnKerasFeatureExtractor,
-      'ssd_resnet101_v1_fpn_keras':
-          ssd_resnet_v1_fpn_keras.SSDResNet101V1FpnKerasFeatureExtractor,
-      'ssd_resnet152_v1_fpn_keras':
-          ssd_resnet_v1_fpn_keras.SSDResNet152V1FpnKerasFeatureExtractor,
-  }
+SSD_FEATURE_EXTRACTOR_CLASS_MAP = {
+  'ssd_inception_v2':
+      SSDInceptionV2FeatureExtractor,
+  'ssd_inception_v3':
+      SSDInceptionV3FeatureExtractor,
+  'ssd_mobilenet_v1':
+      SSDMobileNetV1FeatureExtractor,
+  'ssd_mobilenet_v1_fpn':
+      SSDMobileNetV1FpnFeatureExtractor,
+  'ssd_mobilenet_v1_ppn':
+      SSDMobileNetV1PpnFeatureExtractor,
+  'ssd_mobilenet_v2':
+      SSDMobileNetV2FeatureExtractor,
+  'ssd_mobilenet_v2_fpn':
+      SSDMobileNetV2FpnFeatureExtractor,
+  'ssd_mobilenet_v2_mnasfpn':
+      SSDMobileNetV2MnasFPNFeatureExtractor,
+  'ssd_mobilenet_v3_large':
+      SSDMobileNetV3LargeFeatureExtractor,
+  'ssd_mobilenet_v3_small':
+      SSDMobileNetV3SmallFeatureExtractor,
+  'ssd_mobilenet_edgetpu':
+      SSDMobileNetEdgeTPUFeatureExtractor,
+  'ssd_resnet50_v1_fpn':
+      ssd_resnet_v1_fpn.SSDResnet50V1FpnFeatureExtractor,
+  'ssd_resnet101_v1_fpn':
+      ssd_resnet_v1_fpn.SSDResnet101V1FpnFeatureExtractor,
+  'ssd_resnet152_v1_fpn':
+      ssd_resnet_v1_fpn.SSDResnet152V1FpnFeatureExtractor,
+  'ssd_resnet50_v1_ppn':
+      ssd_resnet_v1_ppn.SSDResnet50V1PpnFeatureExtractor,
+  'ssd_resnet101_v1_ppn':
+      ssd_resnet_v1_ppn.SSDResnet101V1PpnFeatureExtractor,
+  'ssd_resnet152_v1_ppn':
+      ssd_resnet_v1_ppn.SSDResnet152V1PpnFeatureExtractor,
+  'embedded_ssd_mobilenet_v1':
+      EmbeddedSSDMobileNetV1FeatureExtractor,
+  'ssd_pnasnet':
+      SSDPNASNetFeatureExtractor,
+}
 
-  FASTER_RCNN_KERAS_FEATURE_EXTRACTOR_CLASS_MAP = {
-      'faster_rcnn_resnet50_keras':
-          frcnn_resnet_keras.FasterRCNNResnet50KerasFeatureExtractor,
-      'faster_rcnn_resnet101_keras':
-          frcnn_resnet_keras.FasterRCNNResnet101KerasFeatureExtractor,
-      'faster_rcnn_resnet152_keras':
-          frcnn_resnet_keras.FasterRCNNResnet152KerasFeatureExtractor,
-      'faster_rcnn_inception_resnet_v2_keras':
-      frcnn_inc_res_keras.FasterRCNNInceptionResnetV2KerasFeatureExtractor,
-  }
+FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP = {
+  'faster_rcnn_nas':
+  frcnn_nas.FasterRCNNNASFeatureExtractor,
+  'faster_rcnn_pnas':
+  frcnn_pnas.FasterRCNNPNASFeatureExtractor,
+  'faster_rcnn_inception_resnet_v2':
+  frcnn_inc_res.FasterRCNNInceptionResnetV2FeatureExtractor,
+  'faster_rcnn_inception_v2':
+  frcnn_inc_v2.FasterRCNNInceptionV2FeatureExtractor,
+  'faster_rcnn_resnet50':
+  frcnn_resnet_v1.FasterRCNNResnet50FeatureExtractor,
+  'faster_rcnn_resnet101':
+  frcnn_resnet_v1.FasterRCNNResnet101FeatureExtractor,
+  'faster_rcnn_resnet152':
+  frcnn_resnet_v1.FasterRCNNResnet152FeatureExtractor,
+}
 
-  CENTER_NET_EXTRACTOR_FUNCTION_MAP = {
-      'resnet_v2_101': center_net_resnet_feature_extractor.resnet_v2_101,
-      'resnet_v2_50': center_net_resnet_feature_extractor.resnet_v2_50,
-      'hourglass_104': center_net_hourglass_feature_extractor.hourglass_104,
-  }
-
-  FEATURE_EXTRACTOR_MAPS = [
-      CENTER_NET_EXTRACTOR_FUNCTION_MAP,
-      FASTER_RCNN_KERAS_FEATURE_EXTRACTOR_CLASS_MAP,
-      SSD_KERAS_FEATURE_EXTRACTOR_CLASS_MAP
-  ]
-
-if tf_version.is_tf1():
-  SSD_FEATURE_EXTRACTOR_CLASS_MAP = {
-      'ssd_inception_v2':
-          SSDInceptionV2FeatureExtractor,
-      'ssd_inception_v3':
-          SSDInceptionV3FeatureExtractor,
-      'ssd_mobilenet_v1':
-          SSDMobileNetV1FeatureExtractor,
-      'ssd_mobilenet_v1_fpn':
-          SSDMobileNetV1FpnFeatureExtractor,
-      'ssd_mobilenet_v1_ppn':
-          SSDMobileNetV1PpnFeatureExtractor,
-      'ssd_mobilenet_v2':
-          SSDMobileNetV2FeatureExtractor,
-      'ssd_mobilenet_v2_fpn':
-          SSDMobileNetV2FpnFeatureExtractor,
-      'ssd_mobilenet_v2_mnasfpn':
-          SSDMobileNetV2MnasFPNFeatureExtractor,
-      'ssd_mobilenet_v3_large':
-          SSDMobileNetV3LargeFeatureExtractor,
-      'ssd_mobilenet_v3_small':
-          SSDMobileNetV3SmallFeatureExtractor,
-      'ssd_mobilenet_edgetpu':
-          SSDMobileNetEdgeTPUFeatureExtractor,
-      'ssd_resnet50_v1_fpn':
-          ssd_resnet_v1_fpn.SSDResnet50V1FpnFeatureExtractor,
-      'ssd_resnet101_v1_fpn':
-          ssd_resnet_v1_fpn.SSDResnet101V1FpnFeatureExtractor,
-      'ssd_resnet152_v1_fpn':
-          ssd_resnet_v1_fpn.SSDResnet152V1FpnFeatureExtractor,
-      'ssd_resnet50_v1_ppn':
-          ssd_resnet_v1_ppn.SSDResnet50V1PpnFeatureExtractor,
-      'ssd_resnet101_v1_ppn':
-          ssd_resnet_v1_ppn.SSDResnet101V1PpnFeatureExtractor,
-      'ssd_resnet152_v1_ppn':
-          ssd_resnet_v1_ppn.SSDResnet152V1PpnFeatureExtractor,
-      'embedded_ssd_mobilenet_v1':
-          EmbeddedSSDMobileNetV1FeatureExtractor,
-      'ssd_pnasnet':
-          SSDPNASNetFeatureExtractor,
-  }
-
-  FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP = {
-      'faster_rcnn_nas':
-      frcnn_nas.FasterRCNNNASFeatureExtractor,
-      'faster_rcnn_pnas':
-      frcnn_pnas.FasterRCNNPNASFeatureExtractor,
-      'faster_rcnn_inception_resnet_v2':
-      frcnn_inc_res.FasterRCNNInceptionResnetV2FeatureExtractor,
-      'faster_rcnn_inception_v2':
-      frcnn_inc_v2.FasterRCNNInceptionV2FeatureExtractor,
-      'faster_rcnn_resnet50':
-      frcnn_resnet_v1.FasterRCNNResnet50FeatureExtractor,
-      'faster_rcnn_resnet101':
-      frcnn_resnet_v1.FasterRCNNResnet101FeatureExtractor,
-      'faster_rcnn_resnet152':
-      frcnn_resnet_v1.FasterRCNNResnet152FeatureExtractor,
-  }
-
-  FEATURE_EXTRACTOR_MAPS = [
-      SSD_FEATURE_EXTRACTOR_CLASS_MAP,
-      FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP
-  ]
+FEATURE_EXTRACTOR_MAPS = [
+  SSD_FEATURE_EXTRACTOR_CLASS_MAP,
+  FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP
+]
 
 
 def _check_feature_extractor_exists(feature_extractor_type):
@@ -217,24 +166,16 @@ def _build_ssd_feature_extractor(feature_extractor_config,
   use_explicit_padding = feature_extractor_config.use_explicit_padding
   use_depthwise = feature_extractor_config.use_depthwise
 
-  is_keras = tf_version.is_tf2()
-  if is_keras:
-    conv_hyperparams = hyperparams_builder.KerasLayerHyperparams(
-        feature_extractor_config.conv_hyperparams)
-  else:
-    conv_hyperparams = hyperparams_builder.build(
-        feature_extractor_config.conv_hyperparams, is_training)
-  override_base_feature_extractor_hyperparams = (
-      feature_extractor_config.override_base_feature_extractor_hyperparams)
 
-  if not is_keras and feature_type not in SSD_FEATURE_EXTRACTOR_CLASS_MAP:
+  conv_hyperparams = hyperparams_builder.build(
+      feature_extractor_config.conv_hyperparams, is_training)
+override_base_feature_extractor_hyperparams = (
+    feature_extractor_config.override_base_feature_extractor_hyperparams)
+
+  if feature_type not in SSD_FEATURE_EXTRACTOR_CLASS_MAP:
     raise ValueError('Unknown ssd feature_extractor: {}'.format(feature_type))
 
-  if is_keras:
-    feature_extractor_class = SSD_KERAS_FEATURE_EXTRACTOR_CLASS_MAP[
-        feature_type]
-  else:
-    feature_extractor_class = SSD_FEATURE_EXTRACTOR_CLASS_MAP[feature_type]
+  feature_extractor_class = SSD_FEATURE_EXTRACTOR_CLASS_MAP[feature_type]
   kwargs = {
       'is_training':
           is_training,
@@ -261,14 +202,7 @@ def _build_ssd_feature_extractor(feature_extractor_config,
   if feature_extractor_config.HasField('num_layers'):
     kwargs.update({'num_layers': feature_extractor_config.num_layers})
 
-  if is_keras:
-    kwargs.update({
-        'conv_hyperparams': conv_hyperparams,
-        'inplace_batchnorm_update': False,
-        'freeze_batchnorm': freeze_batchnorm
-    })
-  else:
-    kwargs.update({
+  kwargs.update({
         'conv_hyperparams_fn': conv_hyperparams,
         'reuse_weights': reuse_weights,
     })
